@@ -15,5 +15,38 @@ model User {
   email    String @unique
   image    String
 
+  conversations Conversation[]
+
+  messages Message[]
+
   createdAt DateTime @default(now())
+}
+
+model Conversation {
+  id      String   @id @default(uuid())
+  name    String?
+  isGroup Boolean?
+
+  messages Message[]
+
+  users User[]
+
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id    String  @id @default(uuid())
+  body  String?
+  image String?
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
 }
