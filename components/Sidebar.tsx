@@ -6,9 +6,14 @@ import { Users2Icon, MessageCircleMore, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { Conversation, User } from "@prisma/client";
+import { Conversation, Message, User } from "@prisma/client";
 import Image from "next/image";
 import { createConversation } from "@/actions/conversation";
+import { useMemo } from "react";
+import { format } from "date-fns";
+import { Group } from "lucide-react";
+import { useCreateGroupModal } from "@/hooks/use-creategroup-modal";
+import { AvatarGroup } from "./AvatarGroup";
 
 export const Sidebar = ({
   users,
@@ -17,12 +22,14 @@ export const Sidebar = ({
   users: User[];
   conversations: (Conversation & {
     users: User[];
+    messages: Message[];
   })[];
 }) => {
   const { user: clerkUser } = useUser();
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
+  const { onOpen } = useCreateGroupModal();
 
   const isUsers = pathname === "/users";
 
@@ -68,44 +75,80 @@ export const Sidebar = ({
       </div>
       {!isUsers && (
         <div className="overflow-y-auto custom-scrollbar w-full flex flex-col p-2">
-          <h1 className="font-bold text-2xl mt-4 mb-8 ml-1">Messages</h1>
+          <div className="w-full flex items-center justify-between mt-4 mb-8 ml-1">
+            <h1 className="font-bold text-xl">Messages</h1>
+            <Button onClick={() => onOpen(users)} variant="ghost" size="icon">
+              <Group />
+            </Button>
+          </div>
           {conversations.length > 0 ? (
             <div className="flex flex-col gap-y-2">
-              {conversations.map((conversation) => (
-                <Link
-                  key={conversation.id}
-                  href={`/conversation/${conversation.id}`}
-                  className={cn(
-                    "flex gap-x-2 items-center mr-1 w-full p-2 rounded-xl",
-                    isConversationActive(conversation.id) && "bg-slate-100"
-                  )}
-                >
-                  <Image
-                    src={
-                      conversation.users.filter(
-                        (user) => user.clerkId !== clerkUser?.id
-                      )[0].image
-                    }
-                    alt="logo"
-                    width={20}
-                    height={20}
-                    className="rounded-full w-10 h-10"
-                  />
-                  <div className="w-full flex flex-col gap-y-1">
-                    <div className="w-full flex justify-between items-center">
-                      <p className="font-bold text-lg">
-                        {
+              {conversations.map((conversation) => {
+                const lastMessage = useMemo(() => {
+                  const messages = conversation.messages || [];
+                  return messages[messages.length - 1];
+                }, [conversation.messages]);
+
+                const lastMessageText = useMemo(() => {
+                  if (lastMessage?.image) {
+                    return "Sent an Image";
+                  }
+                  if (lastMessage?.body) {
+                    return lastMessage?.body;
+                  }
+                  return "Started a conversation";
+                }, [lastMessage]);
+
+                return (
+                  <Link
+                    key={conversation.id}
+                    href={`/conversation/${conversation.id}`}
+                    className={cn(
+                      "flex gap-x-2 items-center mr-1 w-full p-2 rounded-xl",
+                      isConversationActive(conversation.id) && "bg-slate-100"
+                    )}
+                  >
+                    {conversation.isGroup ? (
+                      <AvatarGroup users={conversation.users} />
+                    ) : (
+                      <Image
+                        src={
                           conversation.users.filter(
                             (user) => user.clerkId !== clerkUser?.id
-                          )[0].username
+                          )[0].image
                         }
-                      </p>
-                      <p className="mr-2">Date</p>
+                        alt="logo"
+                        width={20}
+                        height={20}
+                        className="rounded-full w-10 h-10"
+                      />
+                    )}
+                    <div className="w-full flex flex-col gap-y-1">
+                      <div className="w-full flex justify-between items-center">
+                        {conversation.isGroup ? (
+                          <p className="font-bold text-lg">
+                            {conversation.name}
+                          </p>
+                        ) : (
+                          <p className="font-bold text-lg">
+                            {
+                              conversation.users.filter(
+                                (user) => user.clerkId !== clerkUser?.id
+                              )[0].username
+                            }
+                          </p>
+                        )}
+                        {lastMessage?.createdAt && (
+                          <p className="mr-2 text-sm">
+                            {format(new Date(lastMessage.createdAt), "p")}
+                          </p>
+                        )}
+                      </div>
+                      <div className="line-clamp-1">{lastMessageText}</div>
                     </div>
-                    <div>Last Message</div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="font-bold text-lg">No Conversations Found</div>

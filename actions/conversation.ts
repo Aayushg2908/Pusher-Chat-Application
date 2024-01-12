@@ -90,6 +90,11 @@ export const getAllConversations = async () => {
     },
     include: {
       users: true,
+      messages: {
+        orderBy: {
+          createdAt: "asc",
+        },
+      },
     },
   });
 
@@ -113,6 +118,50 @@ export const getConversationById = async (id: string) => {
       messages: true,
     },
   });
+
+  return conversation;
+};
+
+export const createGroup = async ({
+  name,
+  users,
+}: {
+  name: string;
+  users: string[];
+}) => {
+  const { userId } = auth();
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+
+  const user = await db.user.findUnique({
+    where: {
+      clerkId: userId,
+    },
+  });
+  if (!user) {
+    return redirect("/sign-in");
+  }
+
+  const conversation = await db.conversation.create({
+    data: {
+      name,
+      isGroup: true,
+      users: {
+        connect: [
+          {
+            id: user.id,
+          },
+          ...users.map((id) => ({
+            id,
+          })),
+        ],
+      },
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath(`/conversation/${conversation.id}`);
 
   return conversation;
 };

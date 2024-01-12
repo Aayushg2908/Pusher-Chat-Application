@@ -63,7 +63,7 @@ export const MessageInput = ({
         />
         <Button
           disabled={isLoading}
-          className="bg-sky-500"
+          className="bg-sky-500 hover:bg-sky-600"
           type="submit"
           variant="ghost"
           size="icon"
