@@ -76,12 +76,15 @@ export const getAllConversations = async () => {
       clerkId: userId,
     },
   });
+  if (!user) {
+    return redirect("/sign-in");
+  }
 
   const conversations = await db.conversation.findMany({
     where: {
       users: {
         some: {
-          id: user?.id,
+          id: user.id,
         },
       },
     },
@@ -93,4 +96,23 @@ export const getAllConversations = async () => {
   revalidatePath("/");
 
   return conversations;
+};
+
+export const getConversationById = async (id: string) => {
+  const { userId } = auth();
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+
+  const conversation = await db.conversation.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      users: true,
+      messages: true,
+    },
+  });
+
+  return conversation;
 };

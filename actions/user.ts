@@ -20,3 +20,13 @@ export const getAllUsers = async () => {
 
   return users;
 };
+
+export const getUserByClerkId = async (clerkId: string) => {
+  const user = await db.user.findUnique({
+    where: {
+      clerkId: clerkId,
+    },
+  });
+
+  return user;
+};
