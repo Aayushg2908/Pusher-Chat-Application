@@ -1,20 +1,37 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { SignOutButton, UserButton } from "@clerk/nextjs";
+import { SignOutButton, UserButton, useUser } from "@clerk/nextjs";
 import { Users2Icon, MessageCircleMore, LogOut } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
-import { User } from "@prisma/client";
+import { Conversation, User } from "@prisma/client";
 import Image from "next/image";
 import { createConversation } from "@/actions/conversation";
 
-export const Sidebar = ({ users }: { users: User[] }) => {
+export const Sidebar = ({
+  users,
+  conversations,
+}: {
+  users: User[];
+  conversations: (Conversation & {
+    users: User[];
+  })[];
+}) => {
+  const { user: clerkUser } = useUser();
   const pathname = usePathname();
   const router = useRouter();
+  const params = useParams();
 
   const isUsers = pathname === "/users";
+
+  const isConversationActive = (id: string) => {
+    if (params.conversationId) {
+      return params.conversationId === id;
+    }
+    return false;
+  };
 
   const handleClick = async (id: string) => {
     try {
@@ -50,8 +67,49 @@ export const Sidebar = ({ users }: { users: User[] }) => {
         <UserButton afterSignOutUrl="/sign-in" />
       </div>
       {!isUsers && (
-        <div className="overflow-y-auto custom-scrollbar w-full flex flex-col gap-y-2 p-2">
-          <h1 className="font-bold text-2xl mt-4 ml-1">Messages</h1>
+        <div className="overflow-y-auto custom-scrollbar w-full flex flex-col p-2">
+          <h1 className="font-bold text-2xl mt-4 mb-8 ml-1">Messages</h1>
+          {conversations.length > 0 ? (
+            <div className="flex flex-col gap-y-2">
+              {conversations.map((conversation) => (
+                <Link
+                  key={conversation.id}
+                  href={`/conversation/${conversation.id}`}
+                  className={cn(
+                    "flex gap-x-2 items-center mr-1 w-full p-2 rounded-xl",
+                    isConversationActive(conversation.id) && "bg-slate-100"
+                  )}
+                >
+                  <Image
+                    src={
+                      conversation.users.filter(
+                        (user) => user.clerkId !== clerkUser?.id
+                      )[0].image
+                    }
+                    alt="logo"
+                    width={20}
+                    height={20}
+                    className="rounded-full w-10 h-10"
+                  />
+                  <div className="w-full flex flex-col gap-y-1">
+                    <div className="w-full flex justify-between items-center">
+                      <p className="font-bold text-lg">
+                        {
+                          conversation.users.filter(
+                            (user) => user.clerkId !== clerkUser?.id
+                          )[0].username
+                        }
+                      </p>
+                      <p className="mr-2">Date</p>
+                    </div>
+                    <div>Last Message</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="font-bold text-lg">No Conversations Found</div>
+          )}
         </div>
       )}
       {isUsers && (

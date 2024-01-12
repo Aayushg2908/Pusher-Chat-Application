@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 export const createConversation = async ({ userId }: { userId: string }) => {
@@ -58,5 +59,38 @@ export const createConversation = async ({ userId }: { userId: string }) => {
     },
   });
 
+  revalidatePath("/");
+  revalidatePath(`/conversation/${conversation.id}`);
+
   return conversation;
+};
+
+export const getAllConversations = async () => {
+  const { userId } = auth();
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+
+  const user = await db.user.findUnique({
+    where: {
+      clerkId: userId,
+    },
+  });
+
+  const conversations = await db.conversation.findMany({
+    where: {
+      users: {
+        some: {
+          id: user?.id,
+        },
+      },
+    },
+    include: {
+      users: true,
+    },
+  });
+
+  revalidatePath("/");
+
+  return conversations;
 };
