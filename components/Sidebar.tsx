@@ -84,20 +84,20 @@ export const Sidebar = ({
           {conversations.length > 0 ? (
             <div className="flex flex-col gap-y-2">
               {conversations.map((conversation) => {
-                const lastMessage = useMemo(() => {
+                const lastMessage = () => {
                   const messages = conversation.messages || [];
                   return messages[messages.length - 1];
-                }, [conversation.messages]);
+                };
 
-                const lastMessageText = useMemo(() => {
-                  if (lastMessage?.image) {
+                const lastMessageText = () => {
+                  if (lastMessage()?.image) {
                     return "Sent an Image";
                   }
-                  if (lastMessage?.body) {
-                    return lastMessage?.body;
+                  if (lastMessage()?.body) {
+                    return lastMessage()?.body;
                   }
                   return "Started a conversation";
-                }, [lastMessage]);
+                };
 
                 return (
                   <Link
@@ -138,13 +138,13 @@ export const Sidebar = ({
                             }
                           </p>
                         )}
-                        {lastMessage?.createdAt && (
+                        {lastMessage()?.createdAt && (
                           <p className="mr-2 text-sm">
-                            {format(new Date(lastMessage.createdAt), "p")}
+                            {format(new Date(lastMessage().createdAt), "p")}
                           </p>
                         )}
                       </div>
-                      <div className="line-clamp-1">{lastMessageText}</div>
+                      <div className="line-clamp-1">{lastMessageText()}</div>
                     </div>
                   </Link>
                 );
