@@ -26,7 +26,11 @@ const ConversationPage = async ({
     <>
       <Navbar conversation={conversation!} />
       <div className="h-full flex flex-col">
-        <Messages messages={messages} user={user!} />
+        <Messages
+          messages={messages}
+          user={user!}
+          conversation={conversation.id}
+        />
         <MessageInput conversationId={conversation.id} />
       </div>
     </>

@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { pusherServer } from "@/lib/pusher";
 import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -35,7 +36,14 @@ export const createMessage = async ({
       senderId: user.id,
       conversationId: conversationId,
     },
+    include: {
+      sender: true,
+    },
   });
+
+  pusherServer.trigger(conversationId, "new-message", createdMessage);
+
+  revalidatePath(`/conversation/${conversationId}`);
 };
 
 export const getMessagesByConversationId = async (conversationId: string) => {
@@ -55,9 +63,6 @@ export const getMessagesByConversationId = async (conversationId: string) => {
       createdAt: "asc",
     },
   });
-
-  revalidatePath(`/conversation/${conversationId}`);
-  revalidatePath("/");
 
   return messages;
 };
