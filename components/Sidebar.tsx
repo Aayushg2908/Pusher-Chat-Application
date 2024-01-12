@@ -8,20 +8,29 @@ import { usePathname, useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { User } from "@prisma/client";
 import Image from "next/image";
+import { createConversation } from "@/actions/conversation";
 
 export const Sidebar = ({ users }: { users: User[] }) => {
   const pathname = usePathname();
   const router = useRouter();
 
-  const isHome = pathname === "/";
   const isUsers = pathname === "/users";
 
+  const handleClick = async (id: string) => {
+    try {
+      const conversation = await createConversation({ userId: id });
+      router.push(`/conversation/${conversation.id}`);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
-    <aside className="z-30 h-screen sticky left-0 top-0 hidden md:flex w-[300px] border border-r">
+    <aside className="z-30 h-screen sticky left-0 top-0 hidden md:flex w-[350px] border border-r">
       <div className="max-sm:hidden h-full w-[70px] flex flex-col items-center justify-between p-2 border border-r">
         <div className="w-full flex flex-col items-center gap-y-4 mt-4 text-gray-600">
           <Link
-            className={cn("p-3 rounded-xl", isHome && "bg-slate-200")}
+            className={cn("p-3 rounded-xl", !isUsers && "bg-slate-200")}
             href="/"
           >
             <MessageCircleMore className="w-7 h-7" />
@@ -40,7 +49,7 @@ export const Sidebar = ({ users }: { users: User[] }) => {
         </div>
         <UserButton afterSignOutUrl="/sign-in" />
       </div>
-      {isHome && (
+      {!isUsers && (
         <div className="overflow-y-auto custom-scrollbar w-full flex flex-col gap-y-2 p-2">
           <h1 className="font-bold text-2xl mt-4 ml-1">Messages</h1>
         </div>
@@ -51,6 +60,7 @@ export const Sidebar = ({ users }: { users: User[] }) => {
           {users.map((user) => (
             <div
               key={user.id}
+              onClick={() => handleClick(user.id)}
               className="flex items-center gap-x-2 cursor-pointer ml-1"
             >
               <Image

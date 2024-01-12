@@ -1,9 +1,22 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { auth } from "@clerk/nextjs";
+import { redirect } from "next/navigation";
 
 export const getAllUsers = async () => {
-  const users = await db.user.findMany();
+  const { userId } = auth();
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+
+  const users = await db.user.findMany({
+    where: {
+      NOT: {
+        clerkId: userId,
+      },
+    },
+  });
 
   return users;
 };

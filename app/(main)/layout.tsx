@@ -7,7 +7,7 @@ const MainLayout = async ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex w-full h-full">
       <Sidebar users={users} />
-      <main>{children}</main>
+      <main className="flex-grow h-full">{children}</main>
     </div>
   );
 };
