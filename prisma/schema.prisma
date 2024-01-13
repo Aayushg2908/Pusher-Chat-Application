@@ -39,6 +39,8 @@ model Message {
   body  String?
   image String?
 
+  isDeleted Boolean @default(false)
+
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id])
 

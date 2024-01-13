@@ -66,3 +66,24 @@ export const getMessagesByConversationId = async (conversationId: string) => {
 
   return messages;
 };
+
+export const deleteMessage = async (id: string, conversationId: string) => {
+  const { userId } = auth();
+  if (!userId) {
+    return redirect("/sign-in");
+  }
+
+  const message = await db.message.update({
+    where: {
+      id,
+    },
+    data: {
+      isDeleted: true,
+    },
+    include: {
+      sender: true,
+    },
+  });
+
+  pusherServer.trigger(conversationId, "message-deleted", message);
+};

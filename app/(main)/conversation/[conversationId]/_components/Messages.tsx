@@ -36,7 +36,12 @@ export const Messages = ({ messages, user, conversation }: MessagesProps) => {
   return (
     <div className="flex-1">
       {allMessages.map((message, i) => (
-        <MessageBox key={message.id} data={message} user={user} />
+        <MessageBox
+          key={message.id}
+          data={message}
+          user={user}
+          conversationId={conversation}
+        />
       ))}
       <div className="pt-24" ref={bottomRef} />
     </div>
