@@ -38,7 +38,7 @@ export const MessageBox = ({
       pusherClient.unsubscribe(conversationId);
       pusherClient.unbind("message-deleted", deleteHandler);
     };
-  }, [data.id, conversationId]);
+  }, [data.id, conversationId, message.id]);
 
   const handleClick = async () => {
     try {

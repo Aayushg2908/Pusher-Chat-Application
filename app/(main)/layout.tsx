@@ -10,7 +10,9 @@ const MainLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex w-full h-full">
-      <Sidebar users={users} conversations={conversations} />
+      <div className="hidden md:block">
+        <Sidebar users={users} conversations={conversations} />
+      </div>
       <main className="flex-grow h-full overflow-y-auto custom-scrollbar">
         {children}
       </main>

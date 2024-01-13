@@ -58,7 +58,7 @@ export const Sidebar = ({
       pusherClient.unsubscribe("conversations");
       pusherClient.unbind("new-conversation", conversationHandler);
     };
-  }, [conversations]);
+  }, [conversations, clerkUser?.id]);
 
   const isUsers = pathname === "/users";
 
@@ -79,8 +79,8 @@ export const Sidebar = ({
   };
 
   return (
-    <aside className="z-30 h-screen sticky left-0 top-0 hidden md:flex w-[350px] border border-r">
-      <div className="max-sm:hidden h-full w-[70px] flex flex-col items-center justify-between p-2 border border-r">
+    <aside className="z-30 h-screen sticky left-0 top-0 flex w-[350px] md:border md:border-r">
+      <div className="h-full w-[70px] flex flex-col items-center justify-between p-2 md:border border-r">
         <div className="w-full flex flex-col items-center gap-y-4 mt-4 text-gray-600">
           <Link
             className={cn("p-3 rounded-xl", !isUsers && "bg-slate-200")}

@@ -3,12 +3,15 @@ import { auth } from "@clerk/nextjs";
 import { Conversation, Message, User } from "@prisma/client";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { MobileNav } from "./MobileNav";
 
 interface NavbarProps {
+  users: User[];
   conversation: Conversation & { users: User[]; messages: Message[] };
+  conversations: (Conversation & { users: User[]; messages: Message[] })[];
 }
 
-export const Navbar = ({ conversation }: NavbarProps) => {
+export const Navbar = ({ conversation, users, conversations }: NavbarProps) => {
   const { userId } = auth();
   if (!userId) {
     return redirect("/sign-in");
@@ -18,6 +21,9 @@ export const Navbar = ({ conversation }: NavbarProps) => {
     <nav className="w-full sticky top-0 bg-white h-[70px] border border-l-0 border-b">
       <div className="h-full flex justify-between items-center">
         <div className="h-full flex items-center gap-x-2">
+          <div className="md:hidden mx-2">
+            <MobileNav users={users} conversations={conversations} />
+          </div>
           {conversation.isGroup ? (
             <div className="mx-2">
               <AvatarGroup users={conversation.users} />
