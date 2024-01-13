@@ -47,7 +47,9 @@ export const Sidebar = ({
         messages: Message[];
       }
     ) => {
-      setAllConversations((prev) => [...prev, conversation]);
+      if (conversation.users.some((user) => user.clerkId === clerkUser?.id)) {
+        setAllConversations((prev) => [...prev, conversation]);
+      }
     };
 
     pusherClient.bind("new-conversation", conversationHandler);
