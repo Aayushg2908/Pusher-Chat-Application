@@ -1,6 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { pusherServer } from "@/lib/pusher";
 import { auth } from "@clerk/nextjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -22,6 +23,7 @@ export const createConversation = async ({ userId }: { userId: string }) => {
 
   const existingConversation = await db.conversation.findFirst({
     where: {
+      isGroup: false,
       AND: [
         {
           users: {
@@ -57,7 +59,13 @@ export const createConversation = async ({ userId }: { userId: string }) => {
         ],
       },
     },
+    include: {
+      users: true,
+      messages: true,
+    },
   });
+
+  pusherServer.trigger("conversations", "new-conversation", conversation);
 
   revalidatePath("/");
   revalidatePath(`/conversation/${conversation.id}`);
@@ -158,7 +166,13 @@ export const createGroup = async ({
         ],
       },
     },
+    include: {
+      users: true,
+      messages: true,
+    },
   });
+
+  pusherServer.trigger("conversations", "new-conversation", conversation);
 
   revalidatePath("/");
   revalidatePath(`/conversation/${conversation.id}`);

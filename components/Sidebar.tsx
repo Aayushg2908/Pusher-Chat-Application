@@ -9,11 +9,12 @@ import { Button } from "./ui/button";
 import { Conversation, Message, User } from "@prisma/client";
 import Image from "next/image";
 import { createConversation } from "@/actions/conversation";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import { Group } from "lucide-react";
 import { useCreateGroupModal } from "@/hooks/use-creategroup-modal";
 import { AvatarGroup } from "./AvatarGroup";
+import { pusherClient } from "@/lib/pusher";
 
 export const Sidebar = ({
   users,
@@ -25,11 +26,37 @@ export const Sidebar = ({
     messages: Message[];
   })[];
 }) => {
+  const [allConversations, setAllConversations] = useState<
+    (Conversation & {
+      users: User[];
+      messages: Message[];
+    })[]
+  >(conversations);
   const { user: clerkUser } = useUser();
   const pathname = usePathname();
   const router = useRouter();
   const params = useParams();
   const { onOpen } = useCreateGroupModal();
+
+  useEffect(() => {
+    pusherClient.subscribe("conversations");
+
+    const conversationHandler = (
+      conversation: Conversation & {
+        users: User[];
+        messages: Message[];
+      }
+    ) => {
+      setAllConversations((prev) => [...prev, conversation]);
+    };
+
+    pusherClient.bind("new-conversation", conversationHandler);
+
+    return () => {
+      pusherClient.unsubscribe("conversations");
+      pusherClient.unbind("new-conversation", conversationHandler);
+    };
+  }, [conversations]);
 
   const isUsers = pathname === "/users";
 
@@ -81,9 +108,9 @@ export const Sidebar = ({
               <Group />
             </Button>
           </div>
-          {conversations.length > 0 ? (
+          {allConversations.length > 0 ? (
             <div className="flex flex-col gap-y-2">
-              {conversations.map((conversation) => {
+              {allConversations.map((conversation) => {
                 const lastMessage = () => {
                   const messages = conversation.messages || [];
                   return messages[messages.length - 1];
